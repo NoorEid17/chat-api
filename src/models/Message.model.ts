@@ -5,6 +5,12 @@ const schema = new Schema({
   userId: { type: Types.ObjectId, ref: "User" },
   text: String,
   media: String,
+  seen_at: [
+    {
+      date: Date,
+      user: { type: Types.ObjectId, ref: "User" },
+    },
+  ],
   createdAt: { type: Date, default: Date.now() },
 });
 
