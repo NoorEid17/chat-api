@@ -1,8 +1,11 @@
 import { NextFunction, Request, Response } from "express";
 import User, { IUser } from "../models/User.model";
 import { sign as JwtSign, verify as jwtVerify } from "jsonwebtoken";
-import cloudinary from "../config/cloudinary";
-import streamifier from "streamifier";
+import {
+  changeUserPassword,
+  updateUserAvatar,
+  updateUserInfo,
+} from "../services/user.services";
 
 const generateRefreshToken = (user: IUser) => {
   return JwtSign({ id: user._id.toString() }, process.env.JWT_SECRET!, {
@@ -81,41 +84,26 @@ export const update = async (
   next: NextFunction
 ) => {
   try {
-    const user = await User.findById(req.user.id);
+    const user = (await User.findById(req.user.id)) as IUser;
 
     const { newPassword } = req.body;
     const { oldPassword } = req.body;
 
     if (newPassword && oldPassword) {
-      await user?.changePassword(oldPassword, newPassword).catch((err) => {
-        if (err.message !== "PASSWORD_NOT_MATCHED") {
-          return next(err);
-        }
-        return res.status(400).json({ msg: "Password not matched!" });
-      });
+      await changeUserPassword(user, oldPassword, newPassword);
     }
 
     if (req.file) {
-      const cloudUploadStream = cloudinary.uploader.upload_stream(
-        { transformation: { width: 300, height: 300, crop: "fill" } },
-        async (err, res) => {
-          if (err) {
-            return next(err);
-          }
-          user?.set("avatar", res?.url);
-          await user?.save();
-        }
-      );
-      streamifier.createReadStream(req.file.buffer).pipe(cloudUploadStream);
+      await updateUserAvatar(user, req.file);
     }
 
-    for (const key in req.body) {
-      user?.set(key, req.body[key]);
-    }
+    await updateUserInfo(user, req.body);
 
-    await user?.save();
     res.json({ user });
-  } catch (err) {
+  } catch (err: any) {
+    if (err.message === "PASSWORD_NOT_MATCHED") {
+      return res.status(400).json({ msg: "Password not matched!" });
+    }
     next(err);
   }
 };

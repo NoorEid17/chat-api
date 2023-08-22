@@ -1,4 +1,11 @@
-import { Schema, model, Types } from "mongoose";
+import { Schema, model, Types, ObjectId } from "mongoose";
+
+export interface IRoom {
+  name: string;
+  members: string[];
+  admins: ObjectId[];
+  isGroup: boolean;
+}
 
 const schema = new Schema({
   name: String,
@@ -7,5 +14,5 @@ const schema = new Schema({
   isGroup: Boolean,
 });
 
-const roomModel = model("Room", schema);
+const roomModel = model<IRoom>("Room", schema);
 export default roomModel;

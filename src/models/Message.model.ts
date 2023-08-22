@@ -1,7 +1,15 @@
 import { model, Schema, Types } from "mongoose";
+import { IRoom } from "./Room.model";
+
+interface IMessage {
+  text: string;
+  media: string;
+  room: IRoom;
+  roomId: IRoom;
+}
 
 const schema = new Schema({
-  roomId: { type: Types.ObjectId, ref: "Conversation" },
+  roomId: { type: Types.ObjectId, ref: "Room" },
   userId: { type: Types.ObjectId, ref: "User" },
   text: String,
   media: String,
@@ -14,5 +22,12 @@ const schema = new Schema({
   createdAt: { type: Date, default: Date.now() },
 });
 
-const messageModel = model("Message", schema);
+schema.virtual("room", {
+  ref: "Room",
+  localField: "roomId",
+  foreignField: "_id",
+  justOne: true,
+});
+
+const messageModel = model<IMessage>("Message", schema);
 export default messageModel;

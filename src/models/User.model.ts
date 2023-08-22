@@ -2,7 +2,7 @@ import { Document, Model, model, Schema, Types } from "mongoose";
 import { compare, compareSync, hash, hashSync } from "bcryptjs";
 
 export interface IUser extends Document {
-  id: Types.ObjectId;
+  id: string;
   _id: Types.ObjectId;
   username: string;
   firstName: string;
@@ -12,7 +12,6 @@ export interface IUser extends Document {
   bio: string;
   avatar: string;
   matchPassword(inputPassword: string): boolean;
-  changePassword(newPassword: string, oldPassword: string): Promise<any>;
 }
 
 const schema = new Schema(
@@ -42,17 +41,6 @@ const schema = new Schema(
     methods: {
       matchPassword(this: IUser, inputPassword: string) {
         return compare(inputPassword, this.password);
-      },
-      async changePassword(
-        this: IUser,
-        oldPassword: string,
-        newPassword: string
-      ) {
-        if (!(await this.matchPassword(oldPassword))) {
-          throw new Error("PASSWORD_NOT_MATCHED");
-        }
-        this.set("password", newPassword);
-        return this.save();
       },
     },
   }
