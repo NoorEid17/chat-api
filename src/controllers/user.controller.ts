@@ -6,6 +6,7 @@ import {
   updateUserAvatar,
   updateUserInfo,
 } from "../services/user.services";
+import Room from "../models/Room.model";
 
 const generateRefreshToken = (user: IUser) => {
   return JwtSign({ id: user._id.toString() }, process.env.JWT_SECRET!, {
@@ -22,7 +23,11 @@ export const signup = async (req: Request, res: Response, next: any) => {
     const { id } = await User.create(req.body);
     const user = (await User.findById(id)) as IUser;
 
-    res.cookie("refreshToken", generateRefreshToken(user));
+    res.cookie("refreshToken", generateRefreshToken(user), {
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+    });
     res.status(201).json({ token: generateAccessToken(user) });
   } catch (err) {
     next(err);
@@ -49,7 +54,11 @@ export const login = async (
         .json({ msg: "Username or password is incorrect!" });
     }
 
-    res.cookie("refreshToken", generateRefreshToken(user));
+    res.cookie("refreshToken", generateRefreshToken(user), {
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+    });
     res.status(201).json({ token: generateAccessToken(user) });
   } catch (err) {
     next(err);
@@ -104,6 +113,39 @@ export const update = async (
     if (err.message === "PASSWORD_NOT_MATCHED") {
       return res.status(400).json({ msg: "Password not matched!" });
     }
+    next(err);
+  }
+};
+
+export const logout = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    res.clearCookie("refreshToken");
+    res.json({ msg: "Logged out successfully!" });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getRooms = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = await User.findById(req.user.id)
+      .populate({
+        path: "rooms",
+        populate: {
+          path: "members",
+        },
+      })
+      .exec();
+    res.json({ rooms: user?.rooms });
+  } catch (err) {
     next(err);
   }
 };

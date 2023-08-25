@@ -1,5 +1,6 @@
 import { Document, Model, model, Schema, Types } from "mongoose";
 import { compare, compareSync, hash, hashSync } from "bcryptjs";
+import { IRoom } from "./Room.model";
 
 export interface IUser extends Document {
   id: string;
@@ -11,6 +12,7 @@ export interface IUser extends Document {
   fullName: string;
   bio: string;
   avatar: string;
+  rooms: IRoom[] | string[];
   matchPassword(inputPassword: string): boolean;
 }
 
@@ -31,7 +33,7 @@ const schema = new Schema(
     },
     bio: String,
     avatar: String,
-    contacts: [{ type: Types.ObjectId, ref: "User" }],
+    rooms: [{ type: Types.ObjectId, ref: "Room" }],
     createdAt: {
       type: Date,
       default: Date.now(),

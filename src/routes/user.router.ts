@@ -4,16 +4,18 @@ import {
   validateSignup,
   validateUpdateProfile,
 } from "../middlewares/user.validation";
-import checKValidatioResults from "../middlewares/checkValidationResult";
+import checkValidationResult from "../middlewares/checkValidationResult";
 import * as UserController from "../controllers/user.controller";
 import auth from "../middlewares/auth";
 import upload from "../config/multer";
 const router = Router();
 
+router.post("/logout", UserController.logout);
+
 router.post(
   "/signup",
   validateSignup,
-  checKValidatioResults,
+  checkValidationResult,
   UserController.signup
 );
 
@@ -26,8 +28,10 @@ router.patch(
   auth(),
   upload.single("avatar"),
   validateUpdateProfile,
-  checKValidatioResults,
+  checkValidationResult,
   UserController.update
 );
+
+router.get("/rooms", auth(), UserController.getRooms);
 
 export default router;

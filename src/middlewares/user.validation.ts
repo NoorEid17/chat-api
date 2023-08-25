@@ -1,8 +1,12 @@
+import { Request } from "express";
 import { body } from "express-validator";
 import User from "../models/User.model";
 
-const checkUsernameUsed = async (username: string) => {
-  const user = await User.findOne({ username });
+const checkUsernameUsed = async (username: string, { req }: { req: any }) => {
+  const user = await User.findOne({
+    $and: [{ username: { $ne: req.user.username } }, { username: username }],
+  });
+
   if (user) {
     return Promise.reject("Username is already used!");
   }

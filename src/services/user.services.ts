@@ -1,6 +1,6 @@
 import { IUser } from "../models/User.model";
-import { v2 as cloudinary } from "cloudinary";
 import streamifier from "streamifier";
+import cloudinary from "../config/cloudinary";
 
 export const updateUserInfo = async (user: IUser, data: any) => {
   for (const key in data) {

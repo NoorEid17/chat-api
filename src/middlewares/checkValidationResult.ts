@@ -8,5 +8,5 @@ export default function (req: Request, res: Response, next: any) {
     return next();
   }
 
-  res.send({ errors: result.array() });
+  res.status(400).send({ errors: result.array() });
 }

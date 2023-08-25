@@ -15,7 +15,12 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(cookieParser());
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://127.0.0.1:5173",
+    credentials: true,
+  })
+);
 
 const loggingType = process.env.NODE_ENV ? "dev" : "short";
 app.use(morgan(loggingType));
