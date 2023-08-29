@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   validateLogin,
+  validateSearch,
   validateSignup,
   validateUpdateProfile,
 } from "../middlewares/user.validation";
@@ -33,5 +34,7 @@ router.patch(
 );
 
 router.get("/rooms", auth(), UserController.getRooms);
+
+router.post("/search", validateSearch, UserController.search);
 
 export default router;

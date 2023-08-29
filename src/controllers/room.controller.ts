@@ -16,3 +16,18 @@ export const createNewRoom = async (
     next(err);
   }
 };
+
+export const fetchRoomInfo = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { roomId } = req.params;
+    const room = await Room.findById(roomId).populate("members");
+    if (!room) {
+      return res.sendStatus(404);
+    }
+    res.json({ room });
+  } catch (err) {}
+};

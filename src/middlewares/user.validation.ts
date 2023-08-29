@@ -1,5 +1,5 @@
 import { Request } from "express";
-import { body } from "express-validator";
+import { body, query } from "express-validator";
 import User from "../models/User.model";
 
 const checkUsernameUsed = async (username: string, { req }: { req: any }) => {
@@ -17,7 +17,12 @@ export const validateSignup = [
     .isString()
     .notEmpty()
     .isLength({ min: 5, max: 150 })
-    .custom(checkUsernameUsed),
+    .custom(async (value) => {
+      const user = await User.findOne({ username: value });
+      if (user) {
+        return Promise.reject("Username is already used!");
+      }
+    }),
   body("password").isString().notEmpty().isLength({ min: 3, max: 150 }),
   body("firstName").isString().notEmpty().isLength({ min: 3, max: 40 }),
   body("lastName").isString().optional().isLength({ max: 150 }),
@@ -39,3 +44,5 @@ export const validateUpdateProfile = [
   body("lastName").optional().isLength({ min: 3, max: 15 }),
   body("bio").optional().isLength({ min: 0, max: 200 }),
 ];
+
+export const validateSearch = [query("searchQuery").isString().notEmpty()];

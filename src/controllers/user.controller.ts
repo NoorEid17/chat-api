@@ -149,3 +149,33 @@ export const getRooms = async (
     next(err);
   }
 };
+
+export const search = async (
+  req: Request<{}, {}, {}, { searchQuery: string }>,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { searchQuery } = req.query;
+
+    const firstName = searchQuery.split(" ")[0];
+    const lastName = searchQuery.split(" ")[1];
+
+    const usersByUsername = await User.find({
+      username: new RegExp("^" + searchQuery + "$", "i"),
+    }).limit(10);
+
+    const usersByFullName = await User.find({
+      firstName: new RegExp("^" + firstName + "$", "i"),
+      lastName: new RegExp("^" + lastName ? lastName : "" + "$", "i"),
+    });
+
+    const groups = await Room.find({
+      name: new RegExp("^" + searchQuery + "$", "i"),
+    });
+
+    res.json({ results: [...usersByUsername, ...usersByFullName, ...groups] });
+  } catch (err) {
+    next(err);
+  }
+};

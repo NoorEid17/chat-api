@@ -5,8 +5,9 @@ import { ISocket } from "../io";
 
 export const authAsSocketMiddleware = (socket: ISocket, next: any) => {
   try {
-    const token =
-      socket.handshake.auth.token || socket.handshake.headers.authorization;
+    const token = (
+      socket.handshake.auth.token || socket.handshake.headers.authorization
+    ).split(" ")[1];
     if (!token) {
       return next(new Error("No Auth token provided!"));
     }

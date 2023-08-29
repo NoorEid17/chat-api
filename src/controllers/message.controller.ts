@@ -13,7 +13,8 @@ export const getMessages = async (
     const messages = await Message.find({ roomId: req.params.roomId })
       .sort("-createdAt")
       .skip(size * (page - 1))
-      .limit(size);
+      .limit(size)
+      .populate("sender");
 
     res.json({ messages });
   } catch (err) {

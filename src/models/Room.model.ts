@@ -25,5 +25,9 @@ const schema = new Schema(
   }
 );
 
+schema.set("toJSON", {
+  virtuals: true,
+});
+
 const roomModel = model<IRoom>("Room", schema);
 export default roomModel;

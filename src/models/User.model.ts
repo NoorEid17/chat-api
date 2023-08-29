@@ -13,7 +13,10 @@ export interface IUser extends Document {
   bio: string;
   avatar: string;
   rooms: IRoom[] | string[];
+  isOnline: boolean;
   matchPassword(inputPassword: string): boolean;
+  setIsOnline(): Promise<this>;
+  setIsOffline(): Promise<this>;
 }
 
 const schema = new Schema(
@@ -34,15 +37,24 @@ const schema = new Schema(
     bio: String,
     avatar: String,
     rooms: [{ type: Types.ObjectId, ref: "Room" }],
+    isOnline: { type: Boolean, default: false },
     createdAt: {
       type: Date,
-      default: Date.now(),
+      default: Date.now,
     },
   },
   {
     methods: {
       matchPassword(this: IUser, inputPassword: string) {
         return compare(inputPassword, this.password);
+      },
+      setIsOnline(this: IUser) {
+        this.isOnline = true;
+        return this.save();
+      },
+      setIsOffline(this: IUser) {
+        this.isOnline = false;
+        return this.save();
       },
     },
   }
