@@ -25,6 +25,7 @@ router.get("/:roomId", fetchRoomInfo);
 
 router.put(
   "/:roomId/update-avatar",
+  auth(),
   validateUpdateAvatar,
   checkValidationResult,
   upload.single("avatar"),
