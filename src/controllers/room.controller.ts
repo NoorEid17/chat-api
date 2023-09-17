@@ -1,5 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import Room from "../models/Room.model";
+import cloudinary from "../config/cloudinary";
+import streamifier from "streamifier";
 
 export const createNewRoom = async (
   req: Request,
@@ -42,5 +44,38 @@ export const fetchRoomInfo = async (
       return res.sendStatus(404);
     }
     res.json({ room });
-  } catch (err) {}
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const updateAvatar = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const avatar = req.file;
+    const room = await Room.findById(req.params.roomId);
+    if (!room || !avatar) {
+      throw new Error("room not found");
+    }
+    if (!room.admins.includes(req.user.id)) {
+      res.sendStatus(403);
+    }
+    const cloudUploadStream = cloudinary.uploader.upload_stream(
+      { transformation: { width: 300, height: 300, crop: "fill" } },
+      async (err, result) => {
+        if (err) {
+          throw err;
+        }
+        room.set("avatar", result?.url);
+        await room.save();
+        res.json({ msg: "Avatar Updated" });
+      }
+    );
+    streamifier.createReadStream(avatar.buffer).pipe(cloudUploadStream);
+  } catch (err) {
+    next(err);
+  }
 };

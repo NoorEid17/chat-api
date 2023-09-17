@@ -8,6 +8,7 @@ export interface IRoom extends Document {
   admins: Types.ObjectId[];
   isGroup: boolean;
   lastMessage?: IMessage;
+  avatar: string;
 
   haveMember(userId: any): boolean;
   addMember(userId: ObjectId): Promise<any>;
@@ -19,6 +20,7 @@ const schema = new Schema(
     members: [{ type: Types.ObjectId, ref: "User" }],
     admins: [{ type: Types.ObjectId, ref: "User" }],
     isGroup: { type: Boolean, default: false },
+    avatar: { type: String, default: "" },
   },
   {
     methods: {

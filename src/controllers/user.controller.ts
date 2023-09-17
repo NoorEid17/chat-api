@@ -27,8 +27,7 @@ export const signup = async (req: Request, res: Response, next: any) => {
 
     res.cookie("refreshToken", generateRefreshToken(user), {
       httpOnly: true,
-      sameSite: "none",
-      secure: true,
+      sameSite: "lax",
     });
     res.status(201).json({ token: generateAccessToken(user) });
   } catch (err) {

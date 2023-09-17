@@ -1,8 +1,16 @@
 import { Router } from "express";
-import { createNewRoom, fetchRoomInfo } from "../controllers/room.controller";
+import upload from "../config/multer";
+import {
+  createNewRoom,
+  fetchRoomInfo,
+  updateAvatar,
+} from "../controllers/room.controller";
 import auth from "../middlewares/auth";
 import checkValidationResult from "../middlewares/checkValidationResult";
-import { validateCreateNewRoom } from "../middlewares/room.validation";
+import {
+  validateCreateNewRoom,
+  validateUpdateAvatar,
+} from "../middlewares/room.validation";
 const router = Router();
 
 router.post(
@@ -14,5 +22,13 @@ router.post(
 );
 
 router.get("/:roomId", fetchRoomInfo);
+
+router.put(
+  "/:roomId/update-avatar",
+  validateUpdateAvatar,
+  checkValidationResult,
+  upload.single("avatar"),
+  updateAvatar
+);
 
 export default router;

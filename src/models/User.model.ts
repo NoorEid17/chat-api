@@ -3,7 +3,7 @@ import { compare, compareSync, hash, hashSync } from "bcryptjs";
 import { IRoom } from "./Room.model";
 
 export interface IUser extends Document {
-  id: string | Types.ObjectId;
+  id: Types.ObjectId;
   _id: Types.ObjectId;
   username: string;
   firstName: string;
