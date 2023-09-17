@@ -1,9 +1,9 @@
-import { Document, Model, model, Schema, Types } from "mongoose";
+import { Document, Model, model, ObjectId, Schema, Types } from "mongoose";
 import { compare, compareSync, hash, hashSync } from "bcryptjs";
 import { IRoom } from "./Room.model";
 
 export interface IUser extends Document {
-  id: string;
+  id: string | Types.ObjectId;
   _id: Types.ObjectId;
   username: string;
   firstName: string;
@@ -13,10 +13,14 @@ export interface IUser extends Document {
   bio: string;
   avatar: string;
   rooms: IRoom[] | string[];
+  contacts: ObjectId[];
   isOnline: boolean;
+
   matchPassword(inputPassword: string): boolean;
   setIsOnline(): Promise<this>;
   setIsOffline(): Promise<this>;
+  addRoom(userId: string): Promise<this>;
+  addContact(userId: ObjectId): Promise<any>;
 }
 
 const schema = new Schema(
@@ -37,6 +41,7 @@ const schema = new Schema(
     bio: String,
     avatar: String,
     rooms: [{ type: Types.ObjectId, ref: "Room" }],
+    contacts: [{ type: Types.ObjectId, ref: "User" }],
     isOnline: { type: Boolean, default: false },
     createdAt: {
       type: Date,
@@ -54,6 +59,16 @@ const schema = new Schema(
       },
       setIsOffline(this: IUser) {
         this.isOnline = false;
+        return this.save();
+      },
+      addRoom(this: IUser, roomId: string) {
+        this.rooms.push(roomId as any);
+        return this.save();
+      },
+      addContact(userId: ObjectId) {
+        if (!this.contacts.includes(userId)) {
+          this.contacts.push(userId);
+        }
         return this.save();
       },
     },

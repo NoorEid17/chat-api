@@ -1,14 +1,15 @@
 import { Document, model, Schema, Types } from "mongoose";
 import { IRoom } from "./Room.model";
 
-interface IMessage extends Document {
+export interface IMessage extends Document {
   text: string;
   media: string;
   room: IRoom;
   roomId: IRoom;
-  seenAt: number[];
+  seenBy: string[];
+  userId: Types.ObjectId;
 
-  markAsSeen(): Promise<any>;
+  markAsSeen(userId: Types.ObjectId | string): Promise<any>;
 }
 
 const schema = new Schema(
@@ -18,10 +19,9 @@ const schema = new Schema(
     userId: { type: Types.ObjectId, ref: "User" },
     text: String,
     media: String,
-    seenAt: [
+    seenBy: [
       {
-        date: Date,
-        user: { type: Types.ObjectId, ref: "User" },
+        type: Types.ObjectId,
       },
     ],
     createdAt: { type: Date, default: Date.now },
@@ -29,8 +29,8 @@ const schema = new Schema(
   {
     _id: false,
     methods: {
-      markAsSeen(this: IMessage) {
-        this.seenAt.push(Date.now());
+      markAsSeen(this: IMessage, userId) {
+        this.seenBy.push(userId);
         return this.save();
       },
     },
@@ -53,5 +53,5 @@ schema.virtual("sender", {
   justOne: true,
 });
 
-const messageModel = model<IMessage>("Message", schema);
-export default messageModel;
+const Message = model<IMessage>("Message", schema);
+export default Message;

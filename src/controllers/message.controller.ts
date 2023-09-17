@@ -21,3 +21,20 @@ export const getMessages = async (
     next(err);
   }
 };
+
+export const getUnreadMessages = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const messages = await Message.find({
+      roomId: req.params.roomId,
+      seenBy: [],
+      userId: { $ne: req.user.id },
+    });
+    res.json({ messages });
+  } catch (err) {
+    next(err);
+  }
+};

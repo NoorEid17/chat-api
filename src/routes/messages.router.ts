@@ -12,4 +12,11 @@ router.get(
   MessageController.getMessages
 );
 
+router.get(
+  "/:roomId/unread",
+  auth(),
+  validateGetMessages,
+  MessageController.getUnreadMessages
+);
+
 export default router;

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  validateAddContact,
   validateLogin,
   validateSearch,
   validateSignup,
@@ -35,6 +36,10 @@ router.patch(
 
 router.get("/rooms", auth(), UserController.getRooms);
 
+router.get("/contacts", auth(), UserController.getContacts);
+
 router.post("/search", validateSearch, UserController.search);
+
+router.post("/contact", auth(), validateAddContact, UserController.addContact);
 
 export default router;

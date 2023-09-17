@@ -46,3 +46,15 @@ export const validateUpdateProfile = [
 ];
 
 export const validateSearch = [query("searchQuery").isString().notEmpty()];
+
+export const validateAddContact = [
+  body("userId")
+    .isMongoId()
+    .notEmpty()
+    .custom(async (value: string) => {
+      const user = await User.findById(value);
+      if (!user) {
+        return Promise.reject("User not found!");
+      }
+    }),
+];

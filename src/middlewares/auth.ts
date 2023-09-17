@@ -9,12 +9,14 @@ export const authAsSocketMiddleware = (socket: ISocket, next: any) => {
       socket.handshake.auth.token || socket.handshake.headers.authorization
     ).split(" ")[1];
     if (!token) {
+      console.log("refused 1");
       return next(new Error("No Auth token provided!"));
     }
     const user = jwtVerify(token, process.env.JWT_SECRET!);
     socket.user = user as any;
     return next();
   } catch (err) {
+    console.log(err);
     next(new Error("Invalid Auth token"));
   }
 };

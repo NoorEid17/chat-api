@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
 export const connectToDB = (cb: () => void) => {
-  mongoose.connect("mongodb://localhost/chat").then(cb);
+  mongoose
+    .connect(process.env.MONGO_URL || "mongodb://localhost/chat")
+    .then(cb);
 };

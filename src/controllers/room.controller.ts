@@ -7,10 +7,23 @@ export const createNewRoom = async (
   next: NextFunction
 ) => {
   try {
+    const { isGroup } = req.body;
+
+    if (isGroup) {
+      const room = await Room.create({
+        admins: [req.user.id],
+        members: [req.user.id],
+        name: req.body.name,
+        isGroup: true,
+      });
+      return res.status(201).json({ room });
+    }
+
     const room = new Room({ ...req.body });
     room.members.push(req.user.id as any);
     room.admins.push(req.user.id as any);
     await room.save();
+    await req.user.addRoom(room.id);
     res.status(201).json({ room });
   } catch (err) {
     next(err);

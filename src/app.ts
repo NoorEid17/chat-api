@@ -5,8 +5,9 @@ import { connectToDB } from "./config/mongodb";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import { createServer } from "http";
-import ioServer from "./io";
+import ioServerHandler from "./io";
 import routes from "./routes";
+import { Server } from "socket.io";
 
 const app = express();
 
@@ -14,10 +15,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(cookieParser());
-
 app.use(
   cors({
-    origin: "http://127.0.0.1:5173",
+    origin: process.env.FRONTEND_ORIGIN || "localhost",
     credentials: true,
   })
 );
@@ -27,10 +27,19 @@ app.use(morgan(loggingType));
 
 app.use("/api", routes);
 
+const httpServer = createServer(app);
+
+export const ioServer: Server = ioServerHandler(httpServer);
+
 connectToDB(() => {
-  const httpServer = createServer(app);
-  ioServer(httpServer);
-  httpServer.listen(process.env.PORT, () => {
-    console.log(`Server listening on http://localhost:${process.env.PORT}`);
-  });
+  httpServer.listen(
+    { host: process.env.HOST || "localhost", port: process.env.PORT || 5000 },
+    () => {
+      console.log(
+        `Server listening on http://${process.env.HOST || "localhost"}:${
+          process.env.PORT
+        }`
+      );
+    }
+  );
 });

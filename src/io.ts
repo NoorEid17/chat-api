@@ -4,6 +4,8 @@ import { authAsSocketMiddleware } from "./middlewares/auth";
 import Room from "./models/Room.model";
 import Message from "./models/Message.model";
 import User, { IUser } from "./models/User.model";
+import cloudinary from "./config/cloudinary";
+import streamifier from "streamifier";
 
 export interface ISocket extends Socket {
   user?: IUser;
@@ -13,18 +15,21 @@ interface MessageRequest {
   text: string;
   roomId: string;
   messageId: string;
+  media?: Buffer;
 }
 
 interface MessageSeenRequest {
   messageId: string;
 }
 
-const ioServer = (httpServer: Server) => {
+const ioServerHandler = (httpServer: Server): IOServer => {
   const io = new IOServer(httpServer, {
     cors: {
-      origin: "http://127.0.0.1:5173",
+      origin: process.env.FRONTEND_ORIGIN,
       methods: ["GET", "POST"],
+      credentials: true,
     },
+    maxHttpBufferSize: 10 ** 6 * 50,
   });
   io.use(authAsSocketMiddleware);
   io.on("connection", async (socket: ISocket) => {
@@ -58,14 +63,33 @@ const ioServer = (httpServer: Server) => {
         })
       ).populate([{ path: "room" }, { path: "sender" }]);
 
-      socket.emit("delivered:" + messageId);
+      const callback = () => {
+        socket.emit("delivered:" + messageId);
 
-      for (const memberId of newMessage.room.members) {
-        if (memberId == socket.user?.id) {
-          console.log("yes");
-          continue;
+        for (const memberId of newMessage.room.members) {
+          if (memberId == socket.user?.id) {
+            continue;
+          }
+          io.to(memberId.toString()).emit("message", newMessage);
         }
-        io.to(memberId.toString()).emit("message", newMessage);
+      };
+
+      if (data.media) {
+        const cloudinaryStream = cloudinary.uploader.upload_stream(
+          {},
+          async (err, result) => {
+            if (err) {
+              throw err;
+            }
+            newMessage.set("media", result?.url);
+            await newMessage.save();
+            callback();
+          }
+        );
+
+        streamifier.createReadStream(data.media).pipe(cloudinaryStream);
+      } else {
+        callback();
       }
     });
 
@@ -77,7 +101,10 @@ const ioServer = (httpServer: Server) => {
       if (!message.room.haveMember(socket.user?.id)) {
         return socket.emit("error", { msg: "Not Allowed" });
       }
-      await message.markAsSeen();
+      await message.markAsSeen(socket.user?.id!);
+      socket
+        .to(message.userId.toString())
+        .emit("seen:" + message.id, message.seenBy);
     });
 
     socket.on("disconnect", async () => {
@@ -85,6 +112,7 @@ const ioServer = (httpServer: Server) => {
       await user?.setIsOffline();
     });
   });
+  return io;
 };
 
-export default ioServer;
+export default ioServerHandler;
